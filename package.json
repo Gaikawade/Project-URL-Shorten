@@ -1,0 +1,26 @@
+{
+  "name": "project-url_shorten",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "start": "npx nodemon src/index"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Gaikawade/project-url_shorten.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/Gaikawade/project-url_shorten/issues"
+  },
+  "homepage": "https://github.com/Gaikawade/project-url_shorten#readme",
+  "dependencies": {
+    "express": "^4.18.1",
+    "mongoose": "^6.4.4",
+    "nodemon": "^2.0.19",
+    "shortid": "^2.2.16"
+  }
+}
