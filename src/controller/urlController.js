@@ -1,33 +1,32 @@
-const urlModel = require('../models/urlModel');
 const shortid = require('shortid');
+const validURL = require('valid-url');
+const urlModel = require('../models/urlModel');
 
 const baseURL = "localhost:3000";
 
 const postURL = async (req, res) => {
     try{
-        let urlBody = req.body;
-        let {longUrl} = urlBody;
+        let {longUrl} = req.body;
 
         if(!longUrl) return res.status(400).send({status: false, message: 'Long URL is mandatory'});
+        if(!validURL.isUri(longUrl)) return res.status(200).send({status: false, message: 'Please enter a valid URL'});
 
-        const lUrlExists = await urlModel.findOne({longUrl: longUrl});
-        if(lUrlExists) return res.status(400).send({status: false, message: 'You have already shorten this URL', shortUrl: lUrlExists.shortUrl});
+        let url = await urlModel.findOne({longUrl});
+        if(url){
+            return res.status(400).send({status: false, message: 'You have already shorten this URL', shortUrl: url.shortUrl});
+        }else{
+            let urlCode = shortid.generate();
+            let shortUrl = baseURL + '/' + urlCode;
 
-        const urlCode = shortid.generate();
-        const shortUrl = baseURL + '/' + urlCode;
+            url = new urlModel ({
+                urlCode,
+                shortUrl,
+                longUrl
+            });
+            await url.save();
 
-        const sUrlExists = await urlModel.findOneAndDelete({shortUrl: shortUrl});
-        if(sUrlExists) return res.status(400).send({status: false, message: 'Short URL already exists'});
-
-        const obj = {
-            urlCode: urlCode,
-            shortUrl: shortUrl,
-            longUrl: longUrl
+            res.status(201).send({status: true, data: url});
         }
-
-        await urlModel.create(obj);
-        let urlData = await urlModel.findOne(obj).select({urlCode: 1, shortUrl: 1, longUrl: 1, _id: 0});
-        res.status(201).send({status: true, message: urlData});
     }
     catch(err){
         res.status(500).json({message: err.message});
