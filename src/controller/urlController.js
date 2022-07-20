@@ -17,7 +17,7 @@ redisClient.auth("1QsKJ8oEfrikHPI6zrG4Yp6BoypaoZOj", (err) => {
     if (err) throw err;
 });
 redisClient.on('connect', async () => {
-    console.log("Redis client connected");
+    console.log("Redis client connected....");
 });
 
 const SET_ASYNC = promisify(redisClient.SET).bind(redisClient);
@@ -34,7 +34,7 @@ const postURL = async (req, res) => {
         if(url){
             return res.status(400).send({status: false, message: 'You have already shorten this URL', shortUrl: url.shortUrl});
         }else{
-            let urlCode = shortid.generate().toLowerCase();
+            let urlCode = shortid.generate().toLowerCase();     //* Generating a code from shortid generate function
             let shortUrl = baseURL + '/' + urlCode;
 
             url = {urlCode, shortUrl, longUrl};
@@ -59,7 +59,6 @@ const getURL = async (req, res) => {
             return res.status(302).redirect(JSON.parse(cachedData));
         }else{
             const find = await urlModel.findOne({urlCode: urlCode});
-
             if(find){
                 await SET_ASYNC(`${urlCode}`, JSON.stringify(find.longUrl));
                 return res.status(302).redirect(find.longUrl);

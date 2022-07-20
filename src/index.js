@@ -8,13 +8,10 @@ const app = express();
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 
-mongoose.connect("mongodb+srv://Mahesh8985:lz9fOW52615YVat4@cluster0.l5fafvk.mongodb.net/URLShorten",
-        {
-            useNewUrlParser: true,
-        }
-    )
-    .then(() => console.log("MongoDB is connected"))
-    .catch((err) => console.log(err));
+let DBString = "mongodb+srv://Mahesh8985:lz9fOW52615YVat4@cluster0.l5fafvk.mongodb.net/URLShorten";
+mongoose.connect(DBString, { useNewUrlParser: true })
+        .then(() => console.log("MongoDB is connected"))
+        .catch((err) => console.log(err));
 
 app.use('/', route);
 
