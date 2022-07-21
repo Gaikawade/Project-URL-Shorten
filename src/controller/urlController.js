@@ -30,9 +30,18 @@ const postURL = async (req, res) => {
         if(!longUrl) return res.status(400).send({status: false, message: 'Long URL is mandatory'});
         if(!validURL.isUri(longUrl)) return res.status(200).send({status: false, message: 'Please enter a valid URL'}); 
 
+        let check = await GET_ASYNC(`${longUrl}`)
+        if(check){
+            check = JSON.parse(check);
+            console.log("Data from Cache");
+            return res.status(200).send({status: true, message: 'You have already shorten this URL', data: {shortUrl: check.shortUrl}});
+        }
+
         let url = await urlModel.findOne({longUrl});
         if(url){
-            return res.status(400).send({status: false, message: 'You have already shorten this URL', shortUrl: url.shortUrl});
+            await SET_ASYNC(`${longUrl}`, JSON.stringify(url));
+            console.log("Data from DB");
+            return res.status(400).send({status: true, message: 'You have already shorten this URL', data: {shortUrl: url.shortUrl}});
         }else{
             let urlCode = shortid.generate().toLowerCase();     //* Generating a code from shortid generate function
             let shortUrl = baseURL + '/' + urlCode;
@@ -40,8 +49,7 @@ const postURL = async (req, res) => {
             url = {urlCode, shortUrl, longUrl};
             let doc = await urlModel.create(url);
 
-            await SET_ASYNC(`${longUrl}`, JSON.stringify({longUrl: longUrl, shortUrl: shortUrl, urlCode: urlCode}));
-
+            await SET_ASYNC(`${longUrl}`, JSON.stringify(doc));
             res.status(201).send({status: true, data: doc});
         }
     }
@@ -53,14 +61,18 @@ const postURL = async (req, res) => {
 const getURL = async (req, res) => {
     try{
         const urlCode = req.params.urlCode;
+        if(!urlCode) return res.status(400).send({status: false, message: 'Please enter a url code'});
+
         const cachedData = await GET_ASYNC(`${urlCode}`);
 
         if(cachedData){
-            return res.status(302).redirect(JSON.parse(cachedData));
+            console.log("Data from cache");
+            return res.status(302).redirect(cachedData);
         }else{
-            const find = await urlModel.findOne({urlCode: urlCode});
+            const find = await urlModel.findOne({urlCode});
             if(find){
-                await SET_ASYNC(`${urlCode}`, JSON.stringify(find.longUrl));
+                console.log("Data from DB");
+                await SET_ASYNC(`${urlCode}`, find.longUrl);
                 return res.status(302).redirect(find.longUrl);
             }else{
                 return res.status(404).send({status: false, message: 'URL not found'});
